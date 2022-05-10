@@ -1,9 +1,10 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.7;
+pragma solidity ^0.8.13;
 
 import "@chainlink/contracts/src/v0.8/interfaces/VRFCoordinatorV2Interface.sol";
 import "@chainlink/contracts/src/v0.8/VRFConsumerBaseV2.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
@@ -11,7 +12,7 @@ import "@openzeppelin/contracts/security/Pausable.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
-/// @author TheSlugMaster
+/// @author TheSlugPrince (you can find me on Telegram and Twitter)
 /// @title Unlucky Slug Lottery
 /// @notice An automated lottery which gives away NFTs of different categories depending on their prize,
 ///         and a Jackpot which has been accumulated. The lottery uses Chainlink VRF v2 to generate
@@ -19,15 +20,16 @@ import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 contract UnluckySlug is VRFConsumerBaseV2, ERC721, IERC721Receiver, Ownable, Pausable, ReentrancyGuard {
     // to Increment the tokenId of the goldenTicket
     using Counters for Counters.Counter;
+    using SafeERC20 for IERC20;
     Counters.Counter private _tokenIds;
-    uint256 LIMIT_GOLDEN_TICKETS = 10000;
+    uint256 constant LIMIT_GOLDEN_TICKETS = 10000;
     // Chainlink VRF v2 Variables
     VRFCoordinatorV2Interface COORDINATOR;
-    address VRF_COORDINATOR = 0x271682DEB8C4E0901D1a1550aD2e64D568E69909;
+    address constant VRF_COORDINATOR = 0x271682DEB8C4E0901D1a1550aD2e64D568E69909;
     bytes32 keyHash = 0xff8dedfbfa60af186cf3c830acbc32c05aae823045ae5ea7da1e45fbfaba4f92;
-    uint32 callbackGasLimit = 1000000;
-    uint16 requestConfirmations = 3;
-    uint32 numWords =  2;
+    uint32 constant callbackGasLimit = 1000000;
+    uint16 constant requestConfirmations = 3;
+    uint32 constant numWords =  2;
     uint64 subscriptionID;
 
     mapping(uint256 => address payable) public requestIdToAddress;
@@ -84,7 +86,7 @@ contract UnluckySlug is VRFConsumerBaseV2, ERC721, IERC721Receiver, Ownable, Pau
     // @dev There is a 6 decimals precision for the Probabilities. In solidity, currently there is
     //      no float available, so must represent the probabilities as integers. In this code, a
     //      probability of 1 is equivalent to probabilityEquivalentToOne.
-    uint256 public probabilityEquivalentToOne = 10000000;
+    uint256 public constant probabilityEquivalentToOne = 10000000;
     // @dev Probability of JackPot is 1/probabilityEquivalentToOne which is equivalent to 0.000001
     uint256 public jackPotProbability = 1;
     // @dev Probability of GoldenTicket initially is 19683/probabilityEquivalentToOne which is
@@ -93,11 +95,11 @@ contract UnluckySlug is VRFConsumerBaseV2, ERC721, IERC721Receiver, Ownable, Pau
     //      It takes approximately 15,000,000 throws to mint all of the collection
     uint256 public goldenTicketProbability = 196830;
     // @dev Percentage of the value of the ticket which go to the JackPot
-    uint8 public valuePercentageToJackpot = 5;
+    uint8 public constant valuePercentageToJackpot = 5;
     // @dev Percentage of the value of the ticket which go to the Referrer if the player has one
-    uint8 public referrerCommisionPercentage = 2;
+    uint8 public constant referrerCommisionPercentage = 2;
     // @dev Percentage value of the ticket which go to the player if the player has a referrer
-    uint8 public cashbackIncentivePercentage = 2;
+    uint8 public constant cashbackIncentivePercentage = 2;
     event JackPot(address indexed _to, uint256 _value);
     event TicketRepayment(address indexed _to, uint256 _value);
     event DepositNFT(address contractAddress, uint256 tokenID, uint256 WeiCost);
@@ -133,26 +135,26 @@ contract UnluckySlug is VRFConsumerBaseV2, ERC721, IERC721Receiver, Ownable, Pau
 
     // @dev Function to set a the Gas limit key Hash for the callback of ChainLink VRF
     // @param _keyHash New Gas Limit key Hash
-    function setKeyHash(bytes32 _keyHash) public onlyOwner {
+    function setKeyHash(bytes32 _keyHash) external onlyOwner {
         keyHash= _keyHash;
     }
 
     // @dev Function to set a subscription ID for ChainLink VRF
     // @param _subscriptionID New subscription ID
-    function setSubscriptionID(uint64 _subscriptionID) public onlyOwner {
+    function setSubscriptionID(uint64 _subscriptionID) external onlyOwner {
         subscriptionID = _subscriptionID;
     }
 
     // @dev Function to set a referrer so you can get cashback and the referrer earns commisions.
     // @param referrerAddress Address of the referrer
-    function setReferrer(address referrerAddress) public whenNotPaused {
+    function setReferrer(address referrerAddress) external whenNotPaused {
         require(moneySpent[referrerAddress] >= .1 ether , "The referrer must spend more than 0.1ETH in the lottery");
         referralToReferrer[msg.sender] = referrerAddress;
     }
 
     // @dev Function to be able to modify the constantProbability in case of some dynamic variables go out of control
     // @param _constantProbability New constant Probability to adjust margin
-    function setconstantProbability(uint256 _constantProbability) public onlyOwner {
+    function setconstantProbability(uint256 _constantProbability) external onlyOwner {
         constantProbability = _constantProbability;
         recalculateGroupProbabilities();
         recalulateCumGroupProb();
@@ -160,7 +162,7 @@ contract UnluckySlug is VRFConsumerBaseV2, ERC721, IERC721Receiver, Ownable, Pau
 
     // @dev Function to be able to modify the ticketCost in case of gasFees are more favorable, or unfavorable
     // @param ticketCostWei New ticket cost
-    function setTicketCost(uint256 ticketCostWei) public onlyOwner {
+    function setTicketCost(uint256 ticketCostWei) external onlyOwner {
         ticketCost = ticketCostWei;
         recalculateGroupProbabilities();
         recalulateCumGroupProb();
@@ -168,7 +170,7 @@ contract UnluckySlug is VRFConsumerBaseV2, ERC721, IERC721Receiver, Ownable, Pau
 
     // @dev Function to be able to modify the jackPot Probability in case of no winners in long time
     // @param _jackPotProbability New JackPot Probability
-    function setJackPotProbability(uint256 _jackPotProbability) public onlyOwner {
+    function setJackPotProbability(uint256 _jackPotProbability) external onlyOwner {
         jackPotProbability = _jackPotProbability;
         recalculateGroupProbabilities();
         recalulateCumGroupProb();
@@ -177,7 +179,7 @@ contract UnluckySlug is VRFConsumerBaseV2, ERC721, IERC721Receiver, Ownable, Pau
     // @dev Function to withdraw the funds to buy more NFTs, and for the project.
     //      Notice that the jackPotBalance cannot be withdraw from this contract.
     // @param _to Address to send the funds
-    function withdrawFunds(address payable _to, uint256 amount) public onlyOwner {
+    function withdrawFunds(address payable _to, uint256 amount) external onlyOwner {
         uint256 balanceAvailableToTransfer = address(this).balance - jackPotBalance;
         require(amount <= balanceAvailableToTransfer, "The amount exceeds the available balance");
         _to.transfer(amount);
@@ -185,7 +187,7 @@ contract UnluckySlug is VRFConsumerBaseV2, ERC721, IERC721Receiver, Ownable, Pau
 
     // @dev Function to withdraw all the NFTs deposited from the smart contract
     // @param _to Address to send the funds
-    function withdrawAllNFTs(address _to) public onlyOwner {
+    function withdrawAllNFTs(address _to) external onlyOwner {
         for (uint i=0; i<topNFTs.length; i++) {
             ERC721(topNFTs[i].contractAddress).safeTransferFrom(address(this), _to, topNFTs[i].tokenID);
         }
@@ -217,14 +219,13 @@ contract UnluckySlug is VRFConsumerBaseV2, ERC721, IERC721Receiver, Ownable, Pau
     // @dev Function to be able to withdraw any ERC20 token in case of receiving some (you never know)
     // @param _tokenContract The contract address of the token to be withdrawn
     // @param _amount Amount of the token to be withdrawn
-    function withdrawERC20(address _tokenContract, uint256 _amount) public onlyOwner {
-        IERC20 tokenContract = IERC20(_tokenContract);
-        tokenContract.transfer(msg.sender, _amount);
+    function withdrawERC20(IERC20 _tokenContract, uint256 _amount) external onlyOwner {
+        _tokenContract.safeTransfer(msg.sender, _amount);
     }
 
     // @dev Function to enter 1 ticket of the lottery and transfer some of the value of the ticket to refferrals and cashback
     // @return requestId requestId generated by ChainLink VRF to identity different requests
-    function enterThrow() public payable whenNotPaused nonReentrant returns (uint256){
+    function enterThrow() external payable whenNotPaused nonReentrant returns (uint256){
         require(msg.value == ticketCost , "Not exact Value...  Send exactly the ticket cost amount");
         uint256 requestId = requestRandomWords();
         jackPotBalance += msg.value * valuePercentageToJackpot / 100;
@@ -239,7 +240,7 @@ contract UnluckySlug is VRFConsumerBaseV2, ERC721, IERC721Receiver, Ownable, Pau
     }
 
     // @dev Function for the owner to be able to deposit Funds for the repayment of tickets
-    function depositFunds() public payable onlyOwner {
+    function depositFunds() external payable onlyOwner {
 
     }
 
@@ -248,7 +249,7 @@ contract UnluckySlug is VRFConsumerBaseV2, ERC721, IERC721Receiver, Ownable, Pau
     // @param tokenID The token ID of the NFT to be deposited
     // @param WeiCost Estimated cost of the NFT in Wei
     function depositTopNFT(address contractAddress, uint256 tokenID, uint256 WeiCost)
-        public
+        external
         onlyOwner
     {
         ERC721 NFTContract = ERC721(contractAddress);
@@ -267,7 +268,7 @@ contract UnluckySlug is VRFConsumerBaseV2, ERC721, IERC721Receiver, Ownable, Pau
     // @param tokenID The token ID of the NFT to be deposited
     // @param WeiCost Estimated cost of the NFT in Wei
     function depositMediumNFT(address contractAddress, uint256 tokenID, uint256 WeiCost)
-        public
+        external
         onlyOwner
     {
         ERC721 NFTContract = ERC721(contractAddress);
@@ -286,7 +287,7 @@ contract UnluckySlug is VRFConsumerBaseV2, ERC721, IERC721Receiver, Ownable, Pau
     // @param tokenID The token ID of the NFT to be deposited
     // @param WeiCost Estimated cost of the NFT in Wei
     function depositNormalNFT(address contractAddress, uint256 tokenID, uint256 WeiCost)
-        public
+        external
         onlyOwner
     {
         ERC721 NFTContract = ERC721(contractAddress);
@@ -579,7 +580,7 @@ contract UnluckySlug is VRFConsumerBaseV2, ERC721, IERC721Receiver, Ownable, Pau
             NFTarray = normalNFTsCumValues;
         }
         if (nftRandomRange <= NFTarray[0]) {
-            index = 0;
+
         } else if (nftRandomRange >= NFTarray[NFTarray.length - 1]) {
             index = NFTarray.length - 1;
         } else {
