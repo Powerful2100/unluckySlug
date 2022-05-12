@@ -22,12 +22,12 @@ contract UnluckySlug is VRFConsumerBaseV2, ERC721, IERC721Receiver, Ownable, Pau
     using Counters for Counters.Counter;
     using SafeERC20 for IERC20;
     Counters.Counter private _tokenIds;
-    uint256 constant LIMIT_GOLDEN_TICKETS = 10000;
+    uint256 constant LIMIT_GOLDEN_TICKETS = 10 * 10**3;
     // Chainlink VRF v2 Variables
     VRFCoordinatorV2Interface COORDINATOR;
     address constant VRF_COORDINATOR = 0x271682DEB8C4E0901D1a1550aD2e64D568E69909;
     bytes32 keyHash = 0xff8dedfbfa60af186cf3c830acbc32c05aae823045ae5ea7da1e45fbfaba4f92;
-    uint32 constant callbackGasLimit = 1000000;
+    uint32 constant callbackGasLimit = 10 * 10**5;
     uint16 constant requestConfirmations = 3;
     uint32 constant numWords =  2;
     uint64 subscriptionID;
@@ -86,7 +86,7 @@ contract UnluckySlug is VRFConsumerBaseV2, ERC721, IERC721Receiver, Ownable, Pau
     // @dev There is a 6 decimals precision for the Probabilities. In solidity, currently there is
     //      no float available, so must represent the probabilities as integers. In this code, a
     //      probability of 1 is equivalent to probabilityEquivalentToOne.
-    uint256 public constant probabilityEquivalentToOne = 10000000;
+    uint256 public constant probabilityEquivalentToOne = 10 * 10**6;
     // @dev Probability of JackPot is 1/probabilityEquivalentToOne which is equivalent to 0.000001
     uint256 public jackPotProbability = 1;
     // @dev Probability of GoldenTicket initially is 19683/probabilityEquivalentToOne which is
@@ -228,12 +228,12 @@ contract UnluckySlug is VRFConsumerBaseV2, ERC721, IERC721Receiver, Ownable, Pau
     function enterThrow() external payable whenNotPaused nonReentrant returns (uint256){
         require(msg.value == ticketCost , "Not exact Value...  Send exactly the ticket cost amount");
         uint256 requestId = requestRandomWords();
-        jackPotBalance += msg.value * valuePercentageToJackpot / 100;
+        unchecked { jackPotBalance += msg.value * valuePercentageToJackpot / 100; }
 
         address referrerAddress = referralToReferrer[msg.sender];
         if (referrerAddress != address(0)) {
-            payable(referrerAddress).transfer(msg.value * referrerCommisionPercentage / 100);
-            payable(msg.sender).transfer(msg.value * cashbackIncentivePercentage / 100);
+            unchecked { payable(referrerAddress).transfer(msg.value * referrerCommisionPercentage / 100); }
+            unchecked { payable(msg.sender).transfer(msg.value * cashbackIncentivePercentage / 100); }
         }
         moneySpent[msg.sender] += msg.value;
         return requestId;
@@ -580,7 +580,7 @@ contract UnluckySlug is VRFConsumerBaseV2, ERC721, IERC721Receiver, Ownable, Pau
             NFTarray = normalNFTsCumValues;
         }
         if (nftRandomRange <= NFTarray[0]) {
-
+            index = 0;
         } else if (nftRandomRange >= NFTarray[NFTarray.length - 1]) {
             index = NFTarray.length - 1;
         } else {
