@@ -46,7 +46,7 @@ contract UnluckySlugBSC is VRFConsumerBaseV2, IERC721Receiver, Ownable, Pausable
     uint256[8] public groupCumValues;
 
     // @dev The cost for 1 ticket in the loterry.
-    uint256 public ticketCost = .002 ether;
+    uint256 public ticketCost = .01 ether;
     // @dev Variable used to calculate the Probabilities of the groups. Tweaking this variable,
     //      and adjusting the average group cost, it gives the flexibility to approximate a Margin
     //      for the lottery. This number has been adjusted to give a value of 1.65 for the ratio
