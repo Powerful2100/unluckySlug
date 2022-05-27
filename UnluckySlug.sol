@@ -74,7 +74,7 @@ contract UnluckySlug is VRFConsumerBaseV2, ERC721, IERC721Receiver, Ownable, Pau
     uint256[] public normalNFTsCumValues;
 
     // @dev The cost for 1 ticket in the loterry.
-    uint256 public ticketCost = .01 ether;
+    uint256 public ticketCost = .05 ether;
     // @dev Variable used to calculate the Probabilities of the groups. Tweaking this variable,
     //      and adjusting the average group cost, it gives the flexibility to approximate a Margin
     //      for the lottery. This number has been adjusted to give a value of 1.65 for the ratio
