@@ -8,7 +8,7 @@ Functionalities Summary:
 - A user can win these different prizes: Jackpot, Top NFT, Medium NFT, Normal NFT, x100 from the ticket prize, x10 from the ticket prize, x1 from the ticket prize, a golden ticket.
 - A user can set a refferer, to get a cashback of 2% in every throw, and give the referrer also a 2%. The only condition is that the referrer had must spend more than .1 ether in the lottery.
 
-* Prizes of Unlucky Slug Ethereum *:
+*Prizes of Unlucky Slug Ethereum*:
 - Jackpot 
 - Top NFT
 - Medium NFT
@@ -18,7 +18,7 @@ Functionalities Summary:
 - x1 ticket repayment
 - Golden Ticket
 
-* Prizes of Unlucky Slug BSC *:
+*Prizes of Unlucky Slug BSC*:
 - Jackpot 
 - X10000 ticket repayment
 - X1000 ticket repayment
