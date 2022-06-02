@@ -103,7 +103,10 @@ contract UnluckySlug is VRFConsumerBaseV2, ERC721, IERC721Receiver, Ownable, Pau
     event JackPot(address indexed _to, uint256 _value);
     event TicketRepayment(address indexed _to, uint256 _value);
     event DepositNFT(address contractAddress, uint256 tokenID, uint256 WeiCost);
-    event WithdrawNFT(address indexed player, address contractAddress, uint256 tokenID);
+    event WithdrawTopNFT(address indexed player, address contractAddress, uint256 tokenID);
+    event WithdrawMediumNFT(address indexed player, address contractAddress, uint256 tokenID);
+    event WithdrawNormalNFT(address indexed player, address contractAddress, uint256 tokenID);
+    event GoldenTicket(address indexed player, uint256 tokenID);
 
     // @dev Constructor to set up the VRF Consumer
     // @param subscriptionId Identifier of the VRF Subscription
@@ -320,7 +323,7 @@ contract UnluckySlug is VRFConsumerBaseV2, ERC721, IERC721Receiver, Ownable, Pau
         }
         recalculateGroupProbabilities();
         recalulateCumGroupProb();
-        emit WithdrawNFT(player, NFTPrize.contractAddress, NFTPrize.tokenID);
+        emit WithdrawTopNFT(player, NFTPrize.contractAddress, NFTPrize.tokenID);
     }
 
     // @dev Function to withdraw MEDIUM NFTs. This function is internally called after receiving the random numbers
@@ -342,7 +345,7 @@ contract UnluckySlug is VRFConsumerBaseV2, ERC721, IERC721Receiver, Ownable, Pau
         }
         recalculateGroupProbabilities();
         recalulateCumGroupProb();
-        emit WithdrawNFT(player, NFTPrize.contractAddress, NFTPrize.tokenID);
+        emit WithdrawMediumNFT(player, NFTPrize.contractAddress, NFTPrize.tokenID);
     }
 
     // @dev Function to withdraw NORMAL NFTs. This function is internally called after receiving the random numbers
@@ -364,7 +367,7 @@ contract UnluckySlug is VRFConsumerBaseV2, ERC721, IERC721Receiver, Ownable, Pau
         }
         recalculateGroupProbabilities();
         recalulateCumGroupProb();
-        emit WithdrawNFT(player, NFTPrize.contractAddress, NFTPrize.tokenID);
+        emit WithdrawNormalNFT(player, NFTPrize.contractAddress, NFTPrize.tokenID);
     }
 
     // @dev Helper function to recalculate the probabilities of the different groups.
@@ -542,6 +545,7 @@ contract UnluckySlug is VRFConsumerBaseV2, ERC721, IERC721Receiver, Ownable, Pau
         newItemId = _tokenIds.current();
         if (newItemId <= LIMIT_GOLDEN_TICKETS) {
             _mint(player, newItemId);
+            emit GoldenTicket(player, newItemId);
             if (newItemId % 2000 == 0) {
                 goldenTicketProbability /= 3;
             }
