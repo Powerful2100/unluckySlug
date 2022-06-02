@@ -43,7 +43,7 @@ contract UnluckySlugBSC is VRFConsumerBaseV2, IERC721Receiver, Ownable, Pausable
     uint256 public refundOneTicketProbability;
     uint256 public noneGroupProbability;
 
-    uint256[8] public groupCumValues;
+    uint256[7] public groupCumValues;
 
     // @dev The cost for 1 ticket in the loterry.
     uint256 public ticketCost = .01 ether;
@@ -255,31 +255,26 @@ contract UnluckySlugBSC is VRFConsumerBaseV2, IERC721Receiver, Ownable, Pausable
             sendJackPot(player);
             unluckyThrows[player] = 0;
         } else if (groupRandomRange <= groupCumValues[1] * slugMultiplier) {
-            // Refund x100000 Ticket Prize
-            payable(player).transfer(100000 * ticketCost);
+            // Refund x10000 Ticket Prize
+            payable(player).transfer(10000 * ticketCost);
             emit TicketRepayment(player, 100000 * ticketCost);
             unluckyThrows[player] = 0;
         } else if (groupRandomRange <= groupCumValues[2] * slugMultiplier) {
-            // Refund x10000 Ticket Prize
-            payable(player).transfer(10000 * ticketCost);
-            emit TicketRepayment(player, 10000 * ticketCost);
-            unluckyThrows[player] = 0;
-        } else if (groupRandomRange <= groupCumValues[3] * slugMultiplier) {
             // Refund x1000 Ticket Prize
-            payable(player).transfer(1000 * ticketCost);
+            payable(player).transfer(10000 * ticketCost);
             emit TicketRepayment(player, 1000 * ticketCost);
             unluckyThrows[player] = 0;
-        } else if (groupRandomRange <= groupCumValues[4] * slugMultiplier) {
+        } else if (groupRandomRange <= groupCumValues[3] * slugMultiplier) {
             // Refund x100 Ticket Prize
-            payable(player).transfer(100 * ticketCost);
+            payable(player).transfer(1000 * ticketCost);
             emit TicketRepayment(player, 100 * ticketCost);
             unluckyThrows[player] = 0;
-        } else if (groupRandomRange <= groupCumValues[5] * slugMultiplier) {
+        } else if (groupRandomRange <= groupCumValues[4] * slugMultiplier) {
             // Refund x10 Ticket Prize
-            payable(player).transfer(10 * ticketCost);
+            payable(player).transfer(100 * ticketCost);
             emit TicketRepayment(player, 10 * ticketCost);
             unluckyThrows[player] = 0;
-        } else if (groupRandomRange <= groupCumValues[6] * slugMultiplier) {
+        } else if (groupRandomRange <= groupCumValues[5] * slugMultiplier) {
             // Refund x1 Ticket Prize
             payable(player).transfer(ticketCost);
             emit TicketRepayment(player, ticketCost);
