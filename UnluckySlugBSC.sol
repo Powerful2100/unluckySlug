@@ -257,21 +257,21 @@ contract UnluckySlugBSC is VRFConsumerBaseV2, IERC721Receiver, Ownable, Pausable
         } else if (groupRandomRange <= groupCumValues[1] * slugMultiplier) {
             // Refund x10000 Ticket Prize
             payable(player).transfer(10000 * ticketCost);
-            emit TicketRepayment(player, 100000 * ticketCost);
+            emit TicketRepayment(player, 10000 * ticketCost);
             unluckyThrows[player] = 0;
         } else if (groupRandomRange <= groupCumValues[2] * slugMultiplier) {
             // Refund x1000 Ticket Prize
-            payable(player).transfer(10000 * ticketCost);
+            payable(player).transfer(1000 * ticketCost);
             emit TicketRepayment(player, 1000 * ticketCost);
             unluckyThrows[player] = 0;
         } else if (groupRandomRange <= groupCumValues[3] * slugMultiplier) {
             // Refund x100 Ticket Prize
-            payable(player).transfer(1000 * ticketCost);
+            payable(player).transfer(100 * ticketCost);
             emit TicketRepayment(player, 100 * ticketCost);
             unluckyThrows[player] = 0;
         } else if (groupRandomRange <= groupCumValues[4] * slugMultiplier) {
             // Refund x10 Ticket Prize
-            payable(player).transfer(100 * ticketCost);
+            payable(player).transfer(10 * ticketCost);
             emit TicketRepayment(player, 10 * ticketCost);
             unluckyThrows[player] = 0;
         } else if (groupRandomRange <= groupCumValues[5] * slugMultiplier) {
